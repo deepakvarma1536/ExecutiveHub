@@ -138,8 +138,12 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 5002;
 const MONGO_OPTS = { serverSelectionTimeoutMS: 10_000, socketTimeoutMS: 45_000 };
-let serverStarted = false;
 let isReconnecting = false;
+
+// ── Start HTTP server immediately so Render detects the port ──────────────
+// MongoDB connects in the background — API calls needing DB return 503
+// until the connection is established (usually < 5 seconds).
+httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 async function connectWithRetry(attempt = 1) {
   if (isReconnecting && attempt === 1) return; // another loop already running
@@ -148,10 +152,6 @@ async function connectWithRetry(attempt = 1) {
     await mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI, MONGO_OPTS);
     console.log('MongoDB connected');
     isReconnecting = false;
-    if (!serverStarted) {
-      serverStarted = true;
-      httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-    }
   } catch (err) {
     const delay = Math.min(5000 * attempt, 30_000);
     console.warn(`MongoDB connection failed (attempt ${attempt}) — retrying in ${delay / 1000}s`);
@@ -165,3 +165,4 @@ mongoose.connection.on('disconnected', () => {
 });
 
 connectWithRetry();
+
