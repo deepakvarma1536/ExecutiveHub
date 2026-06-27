@@ -23,17 +23,19 @@ const httpServer = createServer(app);
 // Trust Render/Vercel/cloud reverse proxies — required for rate limiting and correct IP detection
 app.set('trust proxy', 1);
 
+// Safely parse origin to prevent trailing slash mismatches (e.g., https://...vercel.app/)
+const clientOrigin = (process.env.CLIENT_ORIGIN || 'http://localhost:5173').replace(/\/$/, '');
 
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+    origin: clientOrigin,
     methods: ['GET', 'POST'],
     credentials: true,
   },
 });
 
 app.use(cors({ 
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  origin: clientOrigin,
   credentials: true 
 }));
 app.use(cookieParser());
