@@ -20,6 +20,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const httpServer = createServer(app);
 
+// Trust Render/Vercel/cloud reverse proxies — required for rate limiting and correct IP detection
+app.set('trust proxy', 1);
+
+
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
