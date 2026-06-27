@@ -86,11 +86,23 @@ app.get('/api/health', (_req, res) => {
 
 app.use(errorHandler);
 
-app.use(express.static(path.join(__dirname, '../client/dist')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+// Serve built React app only in local/self-hosted production (not when frontend is on Vercel)
+if (process.env.NODE_ENV !== 'production' || process.env.SERVE_CLIENT === 'true') {
+  app.use(express.static(path.join(__dirname, '../client/dist')));
+  app.get('*', (req, res) => {
+    const indexPath = path.join(__dirname, '../client/dist/index.html');
+    if (require('fs').existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).json({ message: 'Frontend not built. Deploy frontend separately or build client.' });
+    }
+  });
+} else {
+  // In production with separate frontend deployment, just return 404 for unknown routes
+  app.get('*', (req, res) => {
+    res.status(404).json({ message: 'Not found' });
+  });
+}
 io.use((socket, next) => {
   try {
     const rawCookie = socket.handshake.headers.cookie;
