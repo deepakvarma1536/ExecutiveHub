@@ -1,0 +1,522 @@
+/* ============================================================
+   Quiz Dashboard  ·  dashboard.css
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Shell ─────────────────────────────────────────────────── */
+.dbd-shell {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0d1117 0%, #161b27 50%, #0d1117 100%);
+  padding: 1.75rem 1.5rem 4rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #e2e8f0;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.dbd-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.875rem;
+  padding-top: 8rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.9375rem;
+}
+
+/* ── Top bar ────────────────────────────────────────────────── */
+.dbd-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.dbd-back {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.dbd-back:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.dbd-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.dbd-socket-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #4b5563;
+  transition: background 0.3s;
+}
+
+.dbd-socket-dot--on {
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+  }
+
+  50% {
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.85);
+  }
+}
+
+.dbd-socket-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.dbd-live-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  animation: live-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes live-pop {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.dbd-title {
+  font-size: 1.625rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+/* ── Stat cards ─────────────────────────────────────────────── */
+.dbd-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.875rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 700px) {
+  .dbd-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.dbd-stat-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1.125rem 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.dbd-stat-card--accent {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.1));
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.dbd-stat-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 0.375rem;
+}
+
+.dbd-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dbd-stat-card--accent .dbd-stat-value {
+  color: #a5b4fc;
+}
+
+.dbd-stat-card--ready {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.07));
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.dbd-stat-card--ready .dbd-stat-value {
+  color: #fbbf24;
+}
+
+.dbd-stat-card--ready-all {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(16, 185, 129, 0.08));
+  border-color: rgba(52, 211, 153, 0.4);
+  animation: dbd-ready-pulse 1.5s ease-in-out 3;
+}
+
+.dbd-stat-card--ready-all .dbd-stat-value {
+  color: #34d399;
+}
+
+.dbd-stat-denom {
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+@keyframes dbd-ready-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.2);
+  }
+}
+
+/* ── Panels stack full-width ─────────────────────────────────── */
+.dbd-leaderboard-panel,
+.dbd-chart-panel {
+  margin-bottom: 1.25rem;
+}
+
+/* ── Shared panel ───────────────────────────────────────────── */
+.dbd-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+
+.dbd-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.125rem 1.375rem 0.875rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dbd-panel-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.dbd-panel-count {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Empty state ────────────────────────────────────────────── */
+.dbd-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.dbd-empty-icon {
+  font-size: 2.25rem;
+  margin-bottom: 0.625rem;
+}
+
+.dbd-empty-text {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Leaderboard ────────────────────────────────────────────── */
+/* Responsive grid: 1 col on mobile, 2 cols on wide screens */
+.dbd-lb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  padding: 0.625rem 0;
+}
+
+.dbd-lb-row {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 0 0.625rem;
+  padding: 0.625rem 1.25rem 0.75rem;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.dbd-lb-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dbd-lb-row--first {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.08) 0%, transparent 80%);
+}
+
+.dbd-lb-row--first .dbd-lb-name {
+  color: #fde68a;
+  font-weight: 700;
+}
+
+.dbd-lb-row--first .dbd-lb-score {
+  color: #fbbf24;
+}
+
+.dbd-lb-rank {
+  font-size: 1.25rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.dbd-lb-rank-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.dbd-lb-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dbd-lb-score {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: #a5b4fc;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Score bar */
+.dbd-lb-bar-wrap {
+  grid-column: 2 / 4;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 0.3rem;
+}
+
+.dbd-lb-bar {
+  height: 100%;
+  width: var(--bar-pct, 0%);
+  background: linear-gradient(90deg, #6366f1, #a855f7);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dbd-lb-row--first .dbd-lb-bar {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+/* ── Chart panel ────────────────────────────────────────────── */
+.dbd-chart-wrap {
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.dbd-chart-legend {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.dbd-legend-item {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.625rem;
+  border-radius: 999px;
+}
+
+.dbd-legend-green {
+  background: rgba(52, 211, 153, 0.15);
+  color: #6ee7b7;
+}
+
+.dbd-legend-yellow {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fde68a;
+}
+
+.dbd-legend-red {
+  background: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+}
+
+/* Question index below chart */
+.dbd-q-index {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.dbd-q-index-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr 2.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.dbd-q-index-num {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.06em;
+}
+
+.dbd-q-index-prompt {
+  color: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dbd-q-index-pct {
+  font-weight: 700;
+  color: #a5b4fc;
+  text-align: right;
+}
+
+/* ── Question control panel ─────────────────────────────────── */
+.dbd-control-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.dbd-control-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.dbd-control-q-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.dbd-control-counts {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dbd-count-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+}
+
+.dbd-count-pill--ready {
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+.dbd-count-pill--timer {
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+/* Timer progress bar below the counts */
+.dbd-q-timer-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+  width: 100%;
+  max-width: 320px;
+}
+
+.dbd-q-timer-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  transition: width 0.9s linear;
+}
+
+.dbd-next-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+}
+
+/* ── Chart tooltip ──────────────────────────────────────────── */
+.dbd-tooltip {
+  background: #1e2535;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  max-width: 220px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.dbd-tooltip-prompt {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.45;
+  margin-bottom: 0.375rem;
+}
+
+.dbd-tooltip-stat {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.dbd-tooltip-pct {
+  color: #a5b4fc;
+}
+
+.dbd-tooltip-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 0.125rem;
+}

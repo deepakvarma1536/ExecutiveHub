@@ -1,0 +1,35 @@
+.perf-shell { min-height: 100vh; padding: 2rem clamp(1rem, 4vw, 4rem) 4rem; color: #f8fafc; background: #080d1a; }
+.perf-state, .perf-empty { padding: 3rem; text-align: center; color: #94a3b8; }
+.perf-header { display: flex; align-items: center; gap: 1rem; margin: 2rem 0; }
+.perf-avatar { display: grid; place-items: center; width: 4rem; height: 4rem; border-radius: 1rem; background: linear-gradient(135deg, #7c3aed, #2563eb); font-size: 1.6rem; font-weight: 800; }
+.perf-eyebrow { color: #a78bfa; font-size: .75rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.perf-header h1 { margin: .2rem 0; font-size: clamp(1.8rem, 4vw, 2.6rem); }
+.perf-header p { margin: 0; color: #94a3b8; }
+.perf-cards { display: grid; grid-template-columns: repeat(5, minmax(130px, 1fr)); gap: 1rem; }
+.perf-card, .perf-panel, .perf-detail-strip { border: 1px solid rgba(148,163,184,.16); background: rgba(15,23,42,.82); box-shadow: 0 16px 40px rgba(0,0,0,.16); }
+.perf-card { padding: 1.1rem; border-radius: .9rem; }
+.perf-card span { display: block; color: #94a3b8; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+.perf-card strong { display: block; margin-top: .5rem; font-size: 1.65rem; }
+.perf-detail-strip { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin: 1rem 0; padding: .9rem 1.1rem; border-radius: .8rem; color: #94a3b8; }
+.perf-detail-strip strong { margin-left: .25rem; color: #e2e8f0; }
+.perf-chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.perf-panel { min-width: 0; padding: 1.25rem; border-radius: 1rem; }
+.perf-panel h2 { margin: 0 0 1rem; font-size: 1.05rem; }
+.perf-panel-heading { display: flex; justify-content: space-between; align-items: center; }
+.perf-panel-heading span { color: #94a3b8; }
+.perf-table-wrap { overflow-x: auto; }
+.perf-attempts table { width: 100%; border-collapse: collapse; }
+.perf-attempts th, .perf-attempts td { padding: .85rem .7rem; border-bottom: 1px solid rgba(148,163,184,.12); text-align: left; white-space: nowrap; }
+.perf-attempts th { color: #94a3b8; font-size: .75rem; text-transform: uppercase; }
+.perf-attempt-details summary { color: #a78bfa; cursor: pointer; font-weight: 700; }
+.perf-attempt-details[open] { position: relative; }
+.perf-question-list { position: absolute; right: 0; z-index: 2; width: min(680px, 86vw); margin-top: .5rem; padding: .75rem; border: 1px solid #334155; border-radius: .75rem; background: #111827; box-shadow: 0 18px 50px rgba(0,0,0,.5); }
+.perf-question-list div { display: grid; grid-template-columns: 35px minmax(180px, 1fr) 70px 100px; gap: .6rem; padding: .6rem; border-bottom: 1px solid #273449; white-space: normal; }
+.perf-question-list div:last-child { border: 0; }
+.perf-correct { color: #4ade80; }.perf-wrong { color: #f87171; }
+.perf-pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1.25rem; color: #94a3b8; }
+.perf-pagination button { padding: .55rem .8rem; border: 1px solid #475569; border-radius: .55rem; color: #e2e8f0; background: #1e293b; cursor: pointer; }
+.perf-pagination button:disabled { opacity: .45; cursor: default; }
+.dbd-profile-link { color: #e9d5ff; text-decoration: none; }.dbd-profile-link:hover { text-decoration: underline; }
+@media (max-width: 900px) { .perf-cards { grid-template-columns: repeat(2, 1fr); }.perf-chart-grid { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .perf-shell { padding: 1rem; }.perf-cards { grid-template-columns: 1fr; }.perf-header p { overflow-wrap: anywhere; }.perf-question-list div { grid-template-columns: 30px 1fr; } }

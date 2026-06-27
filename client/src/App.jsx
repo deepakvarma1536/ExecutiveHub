@@ -1,20 +1,56 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
-function Home() {
-  return (
-    <main style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
-      <h1>ExecutiveHub</h1>
-      <p>Server-side routes and React pages coming soon.</p>
-    </main>
-  );
-}
+import LoginPage          from './pages/LoginPage.jsx';
+import SignupPage         from './pages/SignupPage.jsx';
+import LandingPage        from './pages/LandingPage.jsx';
+import HomePage           from './pages/HomePage.jsx';
+import SessionEditPage    from './pages/SessionEditPage.jsx';
+import PostQuizPage       from './pages/PostQuizPage.jsx';
+import SessionJoinPage    from './pages/SessionJoinPage.jsx';
+import QuizDashboardPage  from './pages/QuizDashboardPage.jsx';
+import StudentPerformancePage from './pages/StudentPerformancePage.jsx';
+import PollSessionPage    from './pages/PollSessionPage.jsx';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login"  element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+
+          {/* Public routes — no login needed */}
+          <Route path="/sessions/:id/join"      element={<SessionJoinPage />} />
+          <Route path="/sessions/:id/post-quiz" element={<PostQuizPage />} />
+
+          {/* Host-only protected routes */}
+          <Route path="/home" element={
+            <ProtectedRoute><HomePage /></ProtectedRoute>
+          } />
+          <Route path="/sessions/:id/edit" element={
+            <ProtectedRoute><SessionEditPage /></ProtectedRoute>
+          } />
+          <Route path="/sessions/:id/quiz-dashboard" element={
+            <ProtectedRoute><QuizDashboardPage /></ProtectedRoute>
+          } />
+          <Route path="/sessions/:id/poll-manage" element={
+            <ProtectedRoute><PollSessionPage /></ProtectedRoute>
+          } />
+          <Route path="/students/:userId/performance" element={
+            <ProtectedRoute><StudentPerformancePage /></ProtectedRoute>
+          } />
+          <Route path="/performance/me" element={
+            <ProtectedRoute><StudentPerformancePage /></ProtectedRoute>
+          } />
+
+          {/* Landing page — public entry point */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

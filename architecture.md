@@ -78,26 +78,32 @@ ExecutiveHub/
 ## TODO Checklist
 
 ### Auth
-- [ ] `POST /api/auth/register` — hash password, return JWT
-- [ ] `POST /api/auth/login` — verify password, return JWT
-- [ ] `GET  /api/auth/me` — return current user from token
-- [ ] `protect` middleware applied to all private routes
+- [x] `POST /api/auth/register` — hash password, return JWT
+- [x] `POST /api/auth/login` — verify password, return JWT
+- [x] `GET  /api/auth/me` — return current user from token
+- [x] `protect` middleware applied to all private routes (`authMiddleware.js`)
 - [ ] Client: AuthContext, login/register forms, PrivateRoute wrapper
 
 ### Sessions
-- [ ] `POST /api/sessions` — create session, generate unique join code
-- [ ] `GET  /api/sessions` — list host's sessions
-- [ ] `GET  /api/sessions/:id` — session detail + live attendee count
-- [ ] `PATCH /api/sessions/:id/status` — start / end session
-- [ ] Socket event: `session:status` broadcast when host changes status
+- [x] `POST /api/sessions` — create session, generate unique 6-char alphanumeric join code
+- [x] `GET  /api/sessions` — list host's sessions (newest first)
+- [x] `GET  /api/sessions/:id` — session detail + its questions sorted by position
+- [x] `GET  /api/sessions/join/:joinCode` — public route to look up a session by join code
+- [x] `POST /api/sessions/:id/questions` — add a question (poll / quiz / wordcloud) to a session
+- [ ] `PATCH /api/sessions/:id/status` — flip `isLive` (start / end session)
+- [ ] Socket event: `session:status` broadcast when host changes live state
 - [ ] Client: session dashboard, join-by-code flow
 
-### Polls
-- [ ] `POST /api/polls` — create poll within a session
-- [ ] `POST /api/polls/:id/vote` — record vote (one per user)
-- [ ] `PATCH /api/polls/:id/close` — close voting
+### Questions / Polls / Word Cloud
+> Polls, quiz questions, and word-cloud prompts are unified under the `Question` model
+> (`type: 'poll' | 'quiz' | 'wordcloud'`, `options: [{text, votes}]`).
+> The separate `/api/polls` and `/api/wordcloud` routes below may be omitted or kept as thin wrappers.
+
+- [x] `Question` Mongoose model — `sessionId`, `type`, `prompt`, `options[]`, `position`
+- [ ] `POST /api/polls/:id/vote` — increment `options[n].votes` (one vote per user)
+- [ ] `PATCH /api/polls/:id/close` — lock voting
 - [ ] Socket events: `poll:new`, `poll:vote`, `poll:closed` broadcast to session room
-- [ ] Client: poll creator (presenter), live voting card (attendee)
+- [ ] Client: poll/quiz creator (presenter), live voting card (attendee)
 
 ### Live Results
 - [ ] Real-time vote tally via Socket.io room broadcasts
