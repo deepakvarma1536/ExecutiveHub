@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { io } from 'socket.io-client';
+import { createSocket } from '../socket.js';
 import {
   BarChart,
   Bar,
@@ -112,7 +112,7 @@ export default function QuizDashboardPage() {
 
   /* ── socket ─────────────────────────────────────────────────── */
   useEffect(() => {
-    const socket = io({ path: '/socket.io', transports: ['websocket', 'polling'], withCredentials: true });
+    const socket = createSocket();
     socketRef.current = socket;
 
     socket.on('connect', () => {

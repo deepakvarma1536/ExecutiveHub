@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+// In production (Vercel), VITE_API_URL = https://your-app.onrender.com
+// In development, proxy handles /api → localhost:5002
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
+
 const api = axios.create({ 
-  baseURL: '/api',
+  baseURL: BASE_URL,
   withCredentials: true 
 });
 

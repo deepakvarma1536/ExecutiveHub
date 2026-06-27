@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { io } from 'socket.io-client';
+import { createSocket } from '../socket.js';
 import api, { getGuestId } from '../api.js';
 import { LETTERS } from '../constants.js';
 import '../quiz.css';
@@ -72,7 +72,7 @@ export default function PostQuizPage() {
 
   /* ── socket setup ────────────────────────────────────────── */
   useEffect(() => {
-    const socket = io({ path: '/socket.io', transports: ['websocket', 'polling'], withCredentials: true });
+    const socket = createSocket();
     socketRef.current = socket;
 
     socket.on('connect', () => {

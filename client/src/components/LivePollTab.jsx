@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
+import { createSocket } from '../socket.js';
 import api, { getGuestId } from '../api.js';
 import LivePollCard from './LivePollCard.jsx';
 import '../poll.css';
@@ -47,7 +47,7 @@ export default function LivePollTab({ sessionId, isHost = false }) {
   }, []);
 
   useEffect(() => {
-    const socket = io({ path: '/socket.io', transports: ['websocket', 'polling'], withCredentials: true });
+    const socket = createSocket();
     socketRef.current = socket;
 
     socket.on('connect', () => socket.emit('join-session', sessionId));

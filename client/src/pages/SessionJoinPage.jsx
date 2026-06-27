@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { io } from 'socket.io-client';
+import { createSocket } from '../socket.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import LivePollTab from '../components/LivePollTab.jsx';
 import '../post-quiz.css';
@@ -85,7 +85,7 @@ export default function SessionJoinPage() {
   useEffect(() => {
     if (!joined) return;
 
-    const socket = io({ path: '/socket.io', transports: ['websocket', 'polling'], withCredentials: true });
+    const socket = createSocket();
     socketRef.current = socket;
 
     socket.on('connect', () => socket.emit('join-session', sessionId));

@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: executivehub-server
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Set these manually in the Render dashboard:
+      # MONGO_URI        = your MongoDB Atlas connection string
+      # JWT_SECRET       = a long random secret string
+      # JWT_EXPIRES_IN   = 7d
+      # CLIENT_ORIGIN    = https://your-vercel-app.vercel.app
+      # GEMINI_API_KEY   = (optional) your Gemini AI key
