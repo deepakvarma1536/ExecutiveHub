@@ -13,6 +13,8 @@
 @media (max-width: 768px) {
   .auth-shell { grid-template-columns: 1fr; }
   .auth-brand  { display: none; }
+  .auth-form-panel { padding: 1.5rem 1rem; }
+  .auth-top-nav { top: 1rem; right: 1rem; }
 }
 
 /* ── Left brand panel ───────────────────────────────────────── */
