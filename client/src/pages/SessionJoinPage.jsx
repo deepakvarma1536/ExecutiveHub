@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { createSocket } from '../socket.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import LivePollTab from '../components/LivePollTab.jsx';
+import api from '../api.js';
 import '../post-quiz.css';
 import '../poll.css';
 
@@ -54,12 +55,18 @@ export default function SessionJoinPage() {
     setChecking(true);
     try {
       // Step 1: verify the join code matches this session
-      const codeRes = await fetch(`/api/sessions/join/${trimmedCode}`);
-      if (!codeRes.ok) {
-        setErrors({ code: 'Invalid code. Please check and try again.' });
-        return;
+      let session;
+      try {
+        const codeRes = await api.get(`/sessions/join/${trimmedCode}`);
+        session = codeRes.data;
+      } catch (err) {
+        if (err.response?.status === 404 || err.response?.status === 400) {
+          setErrors({ code: 'Invalid code. Please check and try again.' });
+          return;
+        }
+        throw err;
       }
-      const session = await codeRes.json();
+
       if (session._id !== sessionId) {
         setErrors({ code: 'This code does not match the session link.' });
         return;

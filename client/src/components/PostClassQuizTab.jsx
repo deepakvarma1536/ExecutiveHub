@@ -22,9 +22,8 @@ export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes
         else setLoadError(err.response?.data?.message || err.message);
       });
     // Fetch which AI provider is active (no auth needed)
-    fetch('/api/health')
-      .then(r => r.json())
-      .then(d => setAiProvider(d.aiProvider ?? null))
+    api.get('/health')
+      .then(r => setAiProvider(r.data.aiProvider ?? null))
       .catch(() => {});
   }, [sessionId]);
 

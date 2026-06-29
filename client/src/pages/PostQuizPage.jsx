@@ -142,13 +142,15 @@ export default function PostQuizPage() {
 
   /* ── fetch quiz ──────────────────────────────────────────── */
   useEffect(() => {
-    fetch(`/api/sessions/${sessionId}/quiz/public`)
+    api.get(`/sessions/${sessionId}/quiz/public`)
       .then(r => {
-        if (!r.ok) throw new Error(r.status === 404 ? 'Quiz not found for this session.' : `Error ${r.status}`);
-        return r.json();
+        setQuiz(r.data);
+        setLoading(false);
       })
-      .then(data => { setQuiz(data); setLoading(false); })
-      .catch(err => { setFetchError(err.message); setLoading(false); });
+      .catch(err => {
+        setFetchError(err.response?.status === 404 ? 'Quiz not found for this session.' : (err.response?.data?.message || err.message));
+        setLoading(false);
+      });
   }, [sessionId]);
 
   /* ── reset per question (safety net for direct currentIdx changes) ── */
