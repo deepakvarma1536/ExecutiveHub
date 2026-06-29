@@ -7,19 +7,6 @@ import api from '../api.js';
 import '../post-quiz.css';
 import '../poll.css';
 
-const inputStyle = (hasError) => ({
-  width: '100%',
-  padding: '0.625rem 0.875rem',
-  borderRadius: '0.75rem',
-  border: `1.5px solid ${hasError ? '#f87171' : 'rgba(255,255,255,0.15)'}`,
-  background: 'rgba(255,255,255,0.07)',
-  color: '#fff',
-  fontSize: '1rem',
-  fontFamily: 'inherit',
-  outline: 'none',
-  boxSizing: 'border-box',
-  letterSpacing: 'inherit',
-});
 
 export default function SessionJoinPage() {
   const { id: sessionId } = useParams();
@@ -131,7 +118,7 @@ export default function SessionJoinPage() {
               placeholder="e.g. Alex"
               value={name}
               onChange={(e) => { setName(e.target.value); setErrors(p => ({ ...p, name: '' })); }}
-              style={inputStyle(!!errors.name)}
+              className={`pq-input ${errors.name ? 'error' : ''}`}
               autoFocus
               disabled={checking}
             />
@@ -150,7 +137,8 @@ export default function SessionJoinPage() {
               placeholder="e.g. ABC123"
               value={code}
               onChange={(e) => { setCode(e.target.value.toUpperCase()); setErrors(p => ({ ...p, code: '' })); }}
-              style={{ ...inputStyle(!!errors.code), letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase' }}
+              className={`pq-input ${errors.code ? 'error' : ''}`}
+              style={{ letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase' }}
               maxLength={8}
               autoComplete="off"
               spellCheck={false}
