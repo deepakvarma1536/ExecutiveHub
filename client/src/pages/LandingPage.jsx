@@ -59,7 +59,7 @@ const FEATURES = [
     cardClass: '',
     badge: { label: 'AI', cls: 'land-card-badge--ai' },
     name: 'AI Question Generator',
-    desc: 'Powered by Gemini, Groq, or Ollama — generate a full question set from a topic in seconds.',
+    desc: 'Powered by Gemini or Groq — generate a full question set from a topic in seconds.',
     path: '/home',
     publicPath: '/login',
     arrow: 'Try Generator →',
