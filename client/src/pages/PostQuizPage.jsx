@@ -59,6 +59,7 @@ export default function PostQuizPage() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers]   = useState([]);
   const [totalScore, setTotalScore] = useState(0);
+  const [serverLeaderboard, setServerLeaderboard] = useState(null);
 
   const [selected, setSelected]         = useState(null);
   const [locked, setLocked]             = useState(false);
@@ -135,6 +136,11 @@ export default function PostQuizPage() {
       setSelected(null);
       setLockTimeLeft(null);
       setTimeLeft(TIMER_SECONDS);
+    });
+
+    socket.on('quiz-show-leaderboard', ({ leaderboard }) => {
+      setServerLeaderboard(leaderboard);
+      setPhase('leaderboard');
     });
 
     return () => socket.disconnect();
@@ -232,6 +238,55 @@ export default function PostQuizPage() {
       </div>
     </div>
   );
+
+  if (phase === 'leaderboard') {
+    return (
+      <div className="pq-shell">
+        <div className="pq-main" style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+          <div className="pq-card" style={{ padding: '2rem' }}>
+            <h2 style={{ color: '#fff', marginBottom: '1.5rem', textAlign: 'center' }}>🏆 Final Leaderboard</h2>
+            {serverLeaderboard && serverLeaderboard.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {serverLeaderboard.map((row, i) => (
+                  <div key={row.playerName} style={{
+                    display: 'flex', justifyContent: 'space-between',
+                    padding: '1rem', background: 'rgba(255,255,255,0.05)',
+                    borderRadius: '0.75rem', alignItems: 'center'
+                  }}>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <span style={{ 
+                        width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#b45309' : 'transparent',
+                        color: i < 3 ? '#000' : '#fff', fontWeight: 'bold', borderRadius: '50%'
+                      }}>
+                        {i + 1}
+                      </span>
+                      <span style={{ color: '#fff', fontWeight: '600', fontSize: '1.1rem' }}>
+                        {row.playerName} {row.playerName === playerName ? '(You)' : ''}
+                      </span>
+                    </div>
+                    <div style={{ color: '#4ade80', fontWeight: 'bold', fontFamily: 'monospace', fontSize: '1.2rem' }}>
+                      {row.totalScore} pts
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ color: '#94a3b8', textAlign: 'center' }}>No players completed the quiz.</div>
+            )}
+            
+            <button 
+              className="btn btn-primary" 
+              style={{ width: '100%', marginTop: '2rem' }}
+              onClick={() => setPhase('summary')}
+            >
+              View My Summary
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (phase === 'summary') {
     return <SummaryScreen quiz={quiz} answers={answers} totalScore={totalScore} playerName={playerName} />;

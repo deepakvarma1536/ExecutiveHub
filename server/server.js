@@ -140,6 +140,10 @@ io.on('connection', (socket) => {
     socket.to(sessionId).emit('quiz-question-start', { questionIndex });
   });
 
+  socket.on('quiz-present-leaderboard', ({ sessionId, leaderboard }) => {
+    socket.to(sessionId).emit('quiz-show-leaderboard', { leaderboard });
+  });
+
   // Player signals they finished seeing a result and are ready for the next question
   socket.on('quiz-player-ready', ({ sessionId, playerName }) => {
     socket.to(sessionId).emit('quiz-player-ready', { playerName });

@@ -278,11 +278,22 @@ export default function QuizDashboardPage() {
 
       {/* ── Live Leaderboard (full width) ── */}
       <section className="dbd-panel dbd-leaderboard-panel">
-        <div className="dbd-panel-header">
-          <span className="dbd-panel-title">🏆 Live Leaderboard</span>
-          <span className="dbd-panel-count">
-            {leaderboard.length} player{leaderboard.length !== 1 ? 's' : ''}
-          </span>
+        <div className="dbd-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <span className="dbd-panel-title">🏆 Live Leaderboard</span>
+            <span className="dbd-panel-count">
+              {leaderboard.length} player{leaderboard.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          {quizEnded && (
+            <button
+              className="btn btn-primary"
+              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+              onClick={() => socketRef.current?.emit('quiz-present-leaderboard', { sessionId, leaderboard })}
+            >
+              Present Leaderboard
+            </button>
+          )}
         </div>
 
         {leaderboard.length === 0 ? (
