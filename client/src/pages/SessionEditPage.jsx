@@ -237,9 +237,12 @@ function DetailsTab({ session }) {
             {session.joinCode}
           </div>
         </div>
-        <div style={{ marginTop: '1rem' }}>
-          <svg style={{ color: '#0f766e', cursor: 'pointer' }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" onClick={handleCopyLink}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          {copied && <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', color: '#0f766e' }}>Copied!</span>}
+        <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button onClick={handleCopyLink} className="btn" style={{ background: 'transparent', border: '1.5px solid #0f766e', color: '#0f766e', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            COPY LINK
+          </button>
+          {copied && <span style={{ fontSize: '0.75rem', color: '#0f766e', fontWeight: 700 }}>Copied to clipboard!</span>}
         </div>
       </div>
       <div className="details-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
