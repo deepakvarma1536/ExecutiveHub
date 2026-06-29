@@ -14,7 +14,7 @@ const GEMINI_MODEL   = 'gemini-2.0-flash';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_URL     = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL   = 'llama3-8b-8192';
+const GROQ_MODEL   = 'llama-3.1-8b-instant';
 
 const OLLAMA_URL   = process.env.OLLAMA_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = 'llama3';

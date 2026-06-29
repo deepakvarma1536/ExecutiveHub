@@ -13,6 +13,7 @@ export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes
   const [questionCount, setQuestionCount] = useState(5);
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
 
   useEffect(() => {
     api.get(`/sessions/${sessionId}/quiz`)
@@ -31,11 +32,22 @@ export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes
     setGenerating(true);
     setGenError(null);
     try {
-      const res = await api.post(`/sessions/${sessionId}/generate-quiz`, {
-        questionCount: Number(questionCount) || 5,
-      });
+      let res;
+      if (pdfFile) {
+        const formData = new FormData();
+        formData.append('pdf', pdfFile);
+        formData.append('questionCount', questionCount);
+        res = await api.post(`/sessions/${sessionId}/generate-quiz/pdf`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        res = await api.post(`/sessions/${sessionId}/generate-quiz`, {
+          questionCount: Number(questionCount) || 5,
+        });
+      }
       setQuiz(res.data);
       setShowGenPanel(false);
+      setPdfFile(null);
     } catch (err) {
       const status = err.response?.status;
       const msg = err.response?.data?.message || err.message;
@@ -153,6 +165,16 @@ export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes
               Add a topic to this session (Details tab) before generating.
             </div>
           )}
+          <div className="gen-panel-row" style={{ marginBottom: '0.875rem' }}>
+            <span className="gen-count-label">PDF (optional)</span>
+            <input 
+              type="file" 
+              accept="application/pdf"
+              onChange={(e) => setPdfFile(e.target.files[0])}
+              disabled={generating}
+              style={{ fontSize: '0.8125rem' }}
+            />
+          </div>
           <div className="gen-panel-row">
             <span className="gen-count-label">Questions</span>
             <input
@@ -162,12 +184,12 @@ export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes
               max={20}
               value={questionCount}
               onChange={(e) => setQuestionCount(e.target.value)}
-              disabled={generating || !sessionTopic}
+              disabled={generating || (!sessionTopic && !pdfFile)}
             />
             <button
               className="btn btn-primary"
               onClick={handleGenerate}
-              disabled={generating || !sessionTopic}
+              disabled={generating || (!sessionTopic && !pdfFile)}
             >
               {generating && <span className="spinner" />}
               {generating ? 'Generating…' : 'Generate'}

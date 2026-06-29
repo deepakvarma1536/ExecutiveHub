@@ -3,6 +3,12 @@ import PostClassQuiz from '../models/PostClassQuiz.js';
 import { generateQuiz } from '../services/aiQuizService.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { requireHost } from '../middleware/requireHost.js';
+import multer from 'multer';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
+
+const upload = multer({ limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB limit
 
 const router = Router();
 
@@ -26,6 +32,55 @@ router.post('/:id/generate-quiz', authMiddleware, async (req, res) => {
     let questions;
     try {
       questions = await generateQuiz(session.topic, session.notes ?? null, questionCount);
+    } catch (err) {
+      return res.status(502).json({ message: err.message });
+    }
+
+    const quiz = await PostClassQuiz.findOneAndUpdate(
+      { sessionId: session._id },
+      { questions, source: 'ai', generatedAt: new Date() },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.status(201).json(quiz);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/sessions/:id/generate-quiz/pdf
+// Parses a PDF file and generates AI questions based on the content.
+router.post('/:id/generate-quiz/pdf', authMiddleware, upload.single('pdf'), async (req, res) => {
+  try {
+    const session = await requireHost(req, res);
+    if (!session) return;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No PDF file uploaded' });
+    }
+
+    const questionCount = Number.isInteger(Number(req.body.questionCount))
+      ? Number(req.body.questionCount)
+      : 5;
+
+    let pdfData;
+    try {
+      pdfData = await pdfParse(req.file.buffer);
+    } catch (err) {
+      return res.status(400).json({ message: 'Failed to parse PDF' });
+    }
+
+    const pdfText = pdfData.text;
+    const topic = session.topic || 'PDF Content';
+    
+    // Combine existing notes with PDF text
+    const notes = session.notes 
+      ? session.notes + '\n\nExtracted PDF Content:\n' + pdfText
+      : 'Extracted PDF Content:\n' + pdfText;
+
+    let questions;
+    try {
+      questions = await generateQuiz(topic, notes, questionCount);
     } catch (err) {
       return res.status(502).json({ message: err.message });
     }
