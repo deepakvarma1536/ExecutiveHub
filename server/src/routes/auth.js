@@ -25,6 +25,12 @@ const loginSchema = z.object({
   guestId: z.string().min(1).max(128).optional(),
 });
 
+const googleSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  role: z.enum(['admin', 'presenter', 'student']).optional(),
+  guestId: z.string().min(1).max(128).optional(),
+});
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const validate = (schema) => (req, res, next) => {
@@ -149,6 +155,46 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     res.json({ token, user: publicUser(user) });
   } catch (err) {
     res.status(500).json({ message: 'Login failed', error: err.message });
+  }
+});
+
+// POST /api/auth/google
+router.post('/google', validate(googleSchema), async (req, res) => {
+  try {
+    const { token, role, guestId } = req.body;
+    
+    // Fetch user info from Google using the access_token
+    const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
+    if (!response.ok) {
+      return res.status(401).json({ message: 'Invalid Google token' });
+    }
+    const payload = await response.json();
+    
+    const { email, name } = payload;
+    if (!email) return res.status(400).json({ message: 'No email found in Google profile' });
+
+    let user = await User.findOne({ email: email.toLowerCase() });
+    
+    if (!user) {
+      // Create a new user with a random password if they don't exist
+      const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+      const passwordHash = await bcrypt.hash(randomPassword, 12);
+      user = await User.create({ name: name || 'Google User', email: email.toLowerCase(), passwordHash, ...(role && { role: role === 'admin' ? 'student' : role }) });
+    }
+
+    await claimGuestAttemptsSafely(user, guestId);
+    
+    const jwtToken = signToken(user._id);
+    res.cookie('auth_token', jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+    
+    res.json({ token: jwtToken, user: publicUser(user) });
+  } catch (err) {
+    res.status(500).json({ message: 'Google authentication failed', error: err.message });
   }
 });
 
