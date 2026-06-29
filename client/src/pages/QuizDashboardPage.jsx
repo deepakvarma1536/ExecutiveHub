@@ -276,6 +276,37 @@ export default function QuizDashboardPage() {
         </div>
       </div>
 
+      {!quizStarted && (
+        <section className="dbd-panel dbd-lobby-panel" style={{ minHeight: '300px' }}>
+          <div className="dbd-panel-header">
+            <span className="dbd-panel-title">👋 Waiting Lobby</span>
+            <span className="dbd-panel-count">
+              {joinedPlayers.size} player{joinedPlayers.size !== 1 ? 's' : ''} joined
+            </span>
+          </div>
+          {joinedPlayers.size === 0 ? (
+            <div className="dbd-empty">
+              <div className="dbd-empty-icon">⏳</div>
+              <div className="dbd-empty-text">Waiting for players to join...</div>
+            </div>
+          ) : (
+            <div className="dbd-lobby-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.5rem', padding: '0 1rem 1rem' }}>
+              {Array.from(joinedPlayers).map(player => (
+                <div key={player} style={{ 
+                  background: 'rgba(99, 102, 241, 0.15)', border: '1px solid rgba(99, 102, 241, 0.3)', 
+                  padding: '0.5rem 1rem', borderRadius: '99px', color: '#a5b4fc', fontWeight: '600',
+                  display: 'flex', alignItems: 'center', gap: '0.5rem'
+                }}>
+                  <span style={{ fontSize: '1.2rem' }}>👤</span> {player}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {quizStarted && (
+        <>
       {/* ── Live Leaderboard (full width) ── */}
       <section className="dbd-panel dbd-leaderboard-panel">
         <div className="dbd-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -416,6 +447,8 @@ export default function QuizDashboardPage() {
           </div>
         )}
       </section>
+      </>
+      )}
     </div>
   );
 }
