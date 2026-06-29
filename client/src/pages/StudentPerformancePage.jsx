@@ -77,7 +77,7 @@ export default function StudentPerformancePage() {
   const timeDistribution = profile?.metrics.responseTimeDistribution || [];
 
   if (loading && !profile) return <div className="perf-shell"><div className="perf-state">Loading performance…</div></div>;
-  if (error) return <div className="perf-shell"><Link to="/home" className="page-back">← Back</Link><div className="page-error">{error}</div></div>;
+  if (error) return <div className="perf-shell"><Link to="/home" className="perf-back-btn" style={{ marginBottom: '1.5rem' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Dashboard</Link><div className="page-error">{error}</div></div>;
 
   const { student, metrics } = profile;
   const cards = [
@@ -91,7 +91,10 @@ export default function StudentPerformancePage() {
   return (
     <main className="perf-shell">
       {profilePath !== '/performance/me' && (
-        <Link to="/home" className="page-back">← Back to dashboard</Link>
+        <Link to="/home" className="perf-back-btn" style={{ marginBottom: '1.5rem' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          Dashboard
+        </Link>
       )}
 
       {profilePath === '/performance/me' && (

@@ -231,4 +231,65 @@ router.post('/:id/attend', authOptional, async (req, res) => {
   }
 });
 
+// POST /api/sessions/:id/duplicate — duplicate a session (host only)
+router.post('/:id/duplicate', authMiddleware, async (req, res) => {
+  try {
+    const session = await requireHost(req, res);
+    if (!session) return;
+
+    const joinCode = await uniqueJoinCode();
+    
+    // 1. Duplicate Session
+    const newSession = await Session.create({
+      title: `${session.title} (Copy)`,
+      hostId: req.user.id,
+      joinCode,
+      topic: session.topic,
+      notes: session.notes,
+      type: session.type,
+      isLive: false,
+      endedAt: null,
+    });
+
+    // 2. Duplicate specific contents based on type
+    if (session.type === 'quiz' || !session.type) {
+      const quiz = await PostClassQuiz.findOne({ sessionId: session._id }).lean();
+      if (quiz) {
+        const questions = quiz.questions.map(q => {
+          const newQ = { ...q };
+          delete newQ._id;
+          return newQ;
+        });
+        await PostClassQuiz.create({
+          sessionId: newSession._id,
+          questions,
+          source: quiz.source
+        });
+      }
+    } else if (session.type === 'poll') {
+      const questions = await Question.find({ sessionId: session._id }).lean();
+      if (questions.length > 0) {
+        const newQuestions = questions.map(q => {
+          const newQ = { ...q, sessionId: newSession._id };
+          delete newQ._id;
+          if (newQ.options) {
+            newQ.options = newQ.options.map(o => {
+              const newO = { ...o, votes: 0 };
+              delete newO._id;
+              return newO;
+            });
+          }
+          return newQ;
+        });
+        await Question.insertMany(newQuestions);
+      }
+    }
+
+    res.status(201).json(newSession);
+  } catch (err) {
+    if (err.name === 'CastError') return res.status(400).json({ message: 'Invalid session id' });
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;

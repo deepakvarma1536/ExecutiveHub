@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import PostClassQuizTab from '../components/PostClassQuizTab.jsx';
-import LivePollTab from '../components/LivePollTab.jsx';
 import '../quiz.css';
 import '../launch.css';
 
 const TABS = [
   { id: 'details', label: 'Details' },
   { id: 'quiz', label: 'Post-Class Quiz' },
-  { id: 'polls', label: 'Live Polls' },
 ];
 
 export default function SessionEditPage() {
@@ -23,6 +21,8 @@ export default function SessionEditPage() {
   const [launching, setLaunching] = useState(false);
   const [launched, setLaunched] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
+  const navigate = useNavigate();
 
   async function handleCopyLink() {
     const url = `${window.location.origin}/sessions/${id}/join`;
@@ -61,6 +61,19 @@ export default function SessionEditPage() {
     }
   }
 
+  async function handleDuplicate() {
+    if (!window.confirm('Are you sure you want to duplicate this session? This will create a fresh copy.')) return;
+    setDuplicating(true);
+    try {
+      const { data } = await api.post(`/sessions/${id}/duplicate`);
+      navigate(`/sessions/${data._id}/edit`);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to duplicate session');
+    } finally {
+      setDuplicating(false);
+    }
+  }
+
   useEffect(() => {
     api
       .get(`/sessions/${id}`)
@@ -96,45 +109,37 @@ export default function SessionEditPage() {
   const alreadyEnded = !!session.endedAt;
 
   return (
-    <div className="page">
-      <Link to="/home" className="page-back">← Back to dashboard</Link>
+    <div className="hs-root">
+      <nav className="hs-nav">
+        <div className="hs-nav-inner">
+          <Link to="/home" className="hs-nav-logo" style={{ color: '#0f172a' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.25rem' }}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span className="hs-nav-name">ExecutiveHub</span>
+          </Link>
+          <div className="hs-nav-right">
+            <div className="hs-avatar">{user?.name?.[0]?.toUpperCase() ?? '?'}</div>
+          </div>
+        </div>
+      </nav>
 
-      <h1 className="page-title">{session.title}</h1>
-      <div className="page-meta">
-        <span
-          className={`status-dot${session.isLive ? ' live' : ''}`}
-          title={session.isLive ? 'Live' : 'Ended / not started'}
-        />
-        <span>{session.isLive ? 'Live' : session.endedAt ? 'Ended' : 'Not started'}</span>
-        <span>·</span>
-        <span>Code: <strong>{session.joinCode}</strong></span>
-        <button
-          onClick={handleCopyLink}
-          className="btn btn-ghost btn-sm"
-          title="Copy join link"
-          style={{ padding: '0.2rem 0.625rem', fontSize: '0.75rem' }}
-        >
-          {copied ? '✅ Copied!' : '🔗 Copy join link'}
-        </button>
-        {session.topic && (
-          <>
-            <span>·</span>
-            <span>Topic: <strong>{session.topic}</strong></span>
-          </>
-        )}
-      </div>
+      <div className="page">
+        <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569', marginBottom: '1.25rem' }}>
+          Dashboard &gt; Session Details
+        </div>
 
       {/* Launch Quiz banner — host only */}
       {isHost && (
         <div className={`launch-banner ${alreadyEnded ? 'launch-banner--done' : ''}`}>
           {launched || alreadyEnded ? (
-            <div className="launch-banner-done">
-              <span className="launch-banner-icon">✅</span>
-              <div>
-                <div className="launch-banner-title">Quiz launched!</div>
-                <div className="launch-banner-sub">Players in the waiting room have been redirected to the quiz.</div>
+            <div className="launch-banner-done" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="#0f766e" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+                <div>
+                  <div className="launch-banner-title" style={{ fontSize: '1.25rem' }}>Quiz launched!</div>
+                  <div className="launch-banner-sub">Players in the waiting room have been redirected to the quiz.</div>
+                </div>
               </div>
-              <Link to={`/sessions/${id}/quiz-dashboard`} className="btn btn-primary btn-sm launch-view-btn">
+              <Link to={`/sessions/${id}/quiz-dashboard`} className="btn launch-view-btn" style={{ width: '100%', justifyContent: 'center', padding: '0.875rem', background: '#000', color: '#fff', borderRadius: '0.5rem', fontSize: '0.9375rem' }}>
                 View Dashboard →
               </Link>
             </div>
@@ -148,9 +153,10 @@ export default function SessionEditPage() {
                 </div>
               </div>
               <button
-                className="btn btn-primary launch-btn"
+                className="btn launch-btn"
                 onClick={handleLaunchQuiz}
                 disabled={launching}
+                style={{ background: '#27272a', color: '#fff', borderRadius: '0.5rem', border: 'none', padding: '0.625rem 1.25rem', fontWeight: 600, fontSize: '0.9375rem' }}
               >
                 {launching ? (
                   <><span className="spinner" style={{ width: '0.875rem', height: '0.875rem' }} /> Launching…</>
@@ -190,42 +196,73 @@ export default function SessionEditPage() {
         />
       )}
 
-      {activeTab === 'polls' && (
-        <LivePollTab sessionId={session._id} isHost={isHost} />
-      )}
+      {/* Restart section */}
+      <div style={{ textAlign: 'center', marginTop: '3.5rem', marginBottom: '1.5rem', color: '#334155', fontSize: '0.9375rem' }}>
+        Want to restart this session for a new group?
+        <div style={{ marginTop: '1.25rem' }}>
+          <button onClick={handleDuplicate} disabled={duplicating} className="btn" style={{ background: '#fff', border: '1.5px solid #000', color: '#000', fontWeight: 700, padding: '0.625rem 1.25rem', borderRadius: '0.5rem', fontSize: '0.9375rem' }}>
+            {duplicating ? 'Duplicating...' : 'Duplicate Session'}
+          </button>
+        </div>
+      </div>
     </div>
+  </div>
   );
 }
 
 function DetailsTab({ session }) {
+  const [copied, setCopied] = useState(false);
+  async function handleCopyLink() {
+    const url = `${window.location.origin}/sessions/${session._id}/join`;
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(url);
+      else {
+        const el = document.createElement('textarea'); el.value = url;
+        document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+      }
+      setCopied(true); setTimeout(() => setCopied(false), 2000);
+    } catch (err) {}
+  }
+
   return (
     <div className="details-grid">
-      <div className="details-card">
-        <div className="details-card-label">Title</div>
-        <div className="details-card-value">{session.title}</div>
+      <div className="details-card full" style={{ padding: '1.5rem' }}>
+        <div className="details-card-label" style={{ letterSpacing: '0.15em' }}>TITLE</div>
+        <div className="details-card-value" style={{ fontSize: '2rem', fontWeight: 800 }}>{session.title}</div>
       </div>
-      <div className="details-card">
-        <div className="details-card-label">Join code</div>
-        <div className="details-card-value" style={{ fontFamily: 'monospace', fontSize: '1.25rem', letterSpacing: '0.1em' }}>
-          {session.joinCode}
+      <div className="details-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div>
+          <div className="details-card-label" style={{ letterSpacing: '0.15em' }}>JOIN CODE</div>
+          <div className="details-card-value" style={{ fontSize: '1.375rem', fontWeight: 800, letterSpacing: '0.05em' }}>
+            {session.joinCode}
+          </div>
+        </div>
+        <div style={{ marginTop: '1rem' }}>
+          <svg style={{ color: '#0f766e', cursor: 'pointer' }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" onClick={handleCopyLink}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          {copied && <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', color: '#0f766e' }}>Copied!</span>}
         </div>
       </div>
-      <div className="details-card">
-        <div className="details-card-label">Topic</div>
-        <div className={`details-card-value ${!session.topic ? 'details-card-empty' : ''}`}>
-          {session.topic || 'No topic set'}
+      <div className="details-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div>
+          <div className="details-card-label" style={{ letterSpacing: '0.15em' }}>TOPIC</div>
+          <div className={`details-card-value ${!session.topic ? 'details-card-empty' : ''}`} style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>
+            {session.topic || 'No topic set'}
+          </div>
         </div>
+        {session.topic && <div><span className="badge" style={{ background: '#e0e7ff', color: '#1e1b4b', fontWeight: 600, fontSize: '0.6rem', border: '1px solid #c7d2fe', padding: '0.25rem 0.625rem' }}>&lt; &gt; TECHNICAL</span></div>}
       </div>
-      <div className="details-card">
-        <div className="details-card-label">Status</div>
-        <div className="details-card-value">
-          {session.isLive ? '🟢 Live' : session.endedAt ? `Ended ${new Date(session.endedAt).toLocaleString()}` : 'Not started'}
+      <div className="details-card full" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+        <div className="details-card-label" style={{ letterSpacing: '0.15em' }}>STATUS</div>
+        <div className="details-card-value" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '1.125rem' }}>
+          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: session.isLive ? '#22c55e' : '#475569' }}></span>
+          {session.isLive ? 'Live' : session.endedAt ? 'Ended' : 'Not started'}
         </div>
+        {session.endedAt && <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#475569', letterSpacing: '0.05em' }}>{new Date(session.endedAt).toLocaleString()}</div>}
       </div>
       {session.notes && (
-        <div className="details-card full">
-          <div className="details-card-label">Notes</div>
-          <div className="details-card-value">{session.notes}</div>
+        <div className="details-card full" style={{ padding: '1.5rem' }}>
+          <div className="details-card-label" style={{ letterSpacing: '0.15em' }}>NOTES</div>
+          <div className="details-card-value" style={{ fontSize: '0.9375rem' }}>{session.notes}</div>
         </div>
       )}
     </div>

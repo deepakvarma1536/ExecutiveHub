@@ -180,8 +180,9 @@ export default function QuizDashboardPage() {
     <div className="dbd-shell">
       {/* ── Top bar ── */}
       <div className="dbd-topbar">
-        <Link to="/home" className="page-back dbd-back">
-          ← Back to dashboard
+        <Link to="/home" className="dbd-back-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          Dashboard
         </Link>
         <div className="dbd-topbar-right">
           <span className={`dbd-socket-dot ${connected ? 'dbd-socket-dot--on' : ''}`} />
@@ -355,7 +356,7 @@ export default function QuizDashboardPage() {
                   width={38}
                 />
                 <Tooltip content={<QTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-                <Bar dataKey="pct" radius={[6, 6, 0, 0]} maxBarSize={56}>
+                <Bar dataKey="pct" radius={[6, 6, 0, 0]} maxBarSize={56} background={{ fill: 'rgba(20, 184, 166, 0.15)', radius: [6, 6, 0, 0] }}>
                   {questionStats.map((entry) => (
                     <Cell
                       key={entry.questionId}
@@ -371,8 +372,8 @@ export default function QuizDashboardPage() {
                 </Bar>
                 <defs>
                   <linearGradient id="barGreenGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#34d399" />
-                    <stop offset="100%" stopColor="#059669" />
+                    <stop offset="0%" stopColor="#2dd4bf" />
+                    <stop offset="100%" stopColor="#0d9488" />
                   </linearGradient>
                   <linearGradient id="barYellowGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#fbbf24" />

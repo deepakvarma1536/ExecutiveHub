@@ -33,15 +33,26 @@
   margin-bottom: 1.5rem;
 }
 
-.dbd-back {
+.dbd-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.4rem 0.875rem;
+  border-radius: 999px;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  color: #e2e8f0;
   text-decoration: none;
-  transition: color 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.dbd-back:hover {
-  color: rgba(255, 255, 255, 0.75);
+.dbd-back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateX(-2px);
 }
 
 .dbd-topbar-right {
@@ -59,8 +70,8 @@
 }
 
 .dbd-socket-dot--on {
-  background: #22c55e;
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+  background: #14b8a6;
+  box-shadow: 0 0 6px rgba(20, 184, 166, 0.6);
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
@@ -68,11 +79,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 4px rgba(20, 184, 166, 0.5);
   }
 
   50% {
-    box-shadow: 0 0 10px rgba(34, 197, 94, 0.85);
+    box-shadow: 0 0 10px rgba(20, 184, 166, 0.85);
   }
 }
 
@@ -171,13 +182,13 @@
 }
 
 .dbd-stat-card--ready-all {
-  background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(16, 185, 129, 0.08));
-  border-color: rgba(52, 211, 153, 0.4);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(13, 148, 136, 0.08));
+  border-color: rgba(20, 184, 166, 0.4);
   animation: dbd-ready-pulse 1.5s ease-in-out 3;
 }
 
 .dbd-stat-card--ready-all .dbd-stat-value {
-  color: #34d399;
+  color: #2dd4bf;
 }
 
 .dbd-stat-denom {
@@ -190,11 +201,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0);
   }
 
   50% {
-    box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.2);
+    box-shadow: 0 0 0 6px rgba(20, 184, 166, 0.2);
   }
 }
 
@@ -356,8 +367,8 @@
 }
 
 .dbd-legend-green {
-  background: rgba(52, 211, 153, 0.15);
-  color: #6ee7b7;
+  background: rgba(20, 184, 166, 0.15);
+  color: #5eead4;
 }
 
 .dbd-legend-yellow {
@@ -453,9 +464,9 @@
 }
 
 .dbd-count-pill--ready {
-  color: #86efac;
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.25);
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.1);
+  border-color: rgba(20, 184, 166, 0.25);
 }
 
 .dbd-count-pill--timer {
@@ -486,6 +497,15 @@
   flex-shrink: 0;
   padding: 0.625rem 1.25rem;
   font-size: 0.9375rem;
+}
+
+.dbd-next-btn.btn-primary {
+  background: #14b8a6;
+  color: #fff;
+  border-color: #14b8a6;
+}
+.dbd-next-btn.btn-primary:hover:not(:disabled) {
+  background: #0d9488;
 }
 
 /* ── Chart tooltip ──────────────────────────────────────────── */

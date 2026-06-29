@@ -68,7 +68,10 @@ export default function PollSessionPage() {
   return (
     <div className="ps-shell">
       {/* ── Header ── */}
-      <Link to="/home" className="ps-back">← Back to dashboard</Link>
+      <Link to="/home" className="ps-back-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Dashboard
+      </Link>
 
       <div className="ps-header">
         <div>

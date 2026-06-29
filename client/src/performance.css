@@ -30,6 +30,8 @@
 .perf-pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1.25rem; color: #94a3b8; }
 .perf-pagination button { padding: .55rem .8rem; border: 1px solid #475569; border-radius: .55rem; color: #e2e8f0; background: #1e293b; cursor: pointer; }
 .perf-pagination button:disabled { opacity: .45; cursor: default; }
+.perf-back-btn { display: inline-flex; align-items: center; gap: 0.375rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.4rem 0.875rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #e2e8f0; text-decoration: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.perf-back-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); color: #fff; transform: translateX(-2px); }
 .dbd-profile-link { color: #e9d5ff; text-decoration: none; }.dbd-profile-link:hover { text-decoration: underline; }
 @media (max-width: 900px) { .perf-cards { grid-template-columns: repeat(2, 1fr); }.perf-chart-grid { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .perf-shell { padding: 1rem; }.perf-cards { grid-template-columns: 1fr; }.perf-header p { overflow-wrap: anywhere; }.perf-question-list div { grid-template-columns: 30px 1fr; } }
