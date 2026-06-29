@@ -186,6 +186,7 @@ router.get('/:id/quiz-results', authMiddleware, async (req, res) => {
       questionStats,
       averageScore,
       attemptCount: attempts.length,
+      sessionEnded: !!session.endedAt,
     });
   } catch (err) {
     if (err.name === 'CastError') return res.status(400).json({ message: 'Invalid session id' });

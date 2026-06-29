@@ -99,6 +99,9 @@ export default function QuizDashboardPage() {
           averageScore:  res.data.averageScore,
           attemptCount:  res.data.attemptCount,
         });
+        if (res.data.sessionEnded) {
+          setCurrentQuestionIdx(res.data.questionStats.length);
+        }
       })
       .catch((err) => {
         const status = err.response?.status;
