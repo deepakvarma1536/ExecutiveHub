@@ -4,6 +4,9 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 import LoginPage          from './pages/LoginPage.jsx';
 import SignupPage         from './pages/SignupPage.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage  from './pages/ResetPasswordPage.jsx';
+import VerifyEmailPage    from './pages/VerifyEmailPage.jsx';
 import LandingPage        from './pages/LandingPage.jsx';
 import HomePage           from './pages/HomePage.jsx';
 import SessionEditPage    from './pages/SessionEditPage.jsx';
@@ -21,6 +24,9 @@ export default function App() {
           {/* Public routes */}
           <Route path="/login"  element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
           {/* Public routes — no login needed */}
           <Route path="/sessions/:id/join"      element={<SessionJoinPage />} />

@@ -10,6 +10,11 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'presenter', 'student'],
       default: 'student',
     },
+    isVerified: { type: Boolean, default: false },
+    verificationOtp: String,
+    verificationOtpExpires: Date,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );
