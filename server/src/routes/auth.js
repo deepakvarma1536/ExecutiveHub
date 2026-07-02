@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import crypto from 'crypto';
+import dns from 'dns/promises';
 import nodemailer from 'nodemailer';
 import User from '../models/User.js';
 import QuizAttempt from '../models/QuizAttempt.js';
@@ -111,7 +112,16 @@ async function claimGuestAttemptsSafely(user, guestId) {
   }
 }
 
-
+async function hasValidMxRecord(email) {
+  const domain = email.split('@')[1];
+  if (!domain) return false;
+  try {
+    const addresses = await dns.resolveMx(domain);
+    return addresses && addresses.length > 0;
+  } catch (err) {
+    return false;
+  }
+}
 
 // ── Routes ─────────────────────────────────────────────────────────────────────
 
@@ -123,6 +133,11 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ message: 'Email already registered' });
+    }
+
+    const isValidDomain = await hasValidMxRecord(email);
+    if (!isValidDomain) {
+      return res.status(400).json({ message: 'Invalid email domain: No mail server found.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
