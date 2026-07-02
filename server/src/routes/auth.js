@@ -133,7 +133,7 @@ async function sendOtpEmail(user, otp) {
   try {
     if (process.env.SMTP_HOST) {
       await transporter.sendMail({
-        from: '"ExecutiveHub" <noreply@executivehub.com>',
+        from: process.env.SMTP_USER ? `"ExecutiveHub" <${process.env.SMTP_USER}>` : '"ExecutiveHub" <noreply@executivehub.com>',
         to: user.email,
         subject: 'Verify your email address',
         text: `Your verification code is: ${otp}\n\nThis code will expire in 10 minutes.`
@@ -308,7 +308,7 @@ router.post('/forgot-password', validate(forgotPasswordSchema), async (req, res)
     try {
       if (process.env.SMTP_HOST) {
         await transporter.sendMail({
-          from: '"ExecutiveHub" <noreply@executivehub.com>',
+          from: process.env.SMTP_USER ? `"ExecutiveHub" <${process.env.SMTP_USER}>` : '"ExecutiveHub" <noreply@executivehub.com>',
           to: user.email,
           subject: 'Password Reset Request',
           text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n`
