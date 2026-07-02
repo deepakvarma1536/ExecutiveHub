@@ -30,11 +30,7 @@ export default function LoginPage() {
       login(res.data);
       navigate(from, { replace: true });
     } catch (err) {
-      if (err.response?.data?.requiresVerification) {
-        navigate('/verify-email', { state: { email: err.response.data.email || form.email } });
-      } else {
-        setError(err.response?.data?.message || 'Login failed. Please try again.');
-      }
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }

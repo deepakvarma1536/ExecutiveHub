@@ -38,10 +38,10 @@ export default function SignupPage() {
     setLoading(true);
     setApiError('');
     try {
-      // Register then redirect to email verification
       const guestId = getGuestId();
-      await api.post('/auth/register', { ...form, guestId });
-      navigate('/verify-email', { state: { email: form.email } });
+      const res = await api.post('/auth/register', { ...form, guestId });
+      login(res.data);
+      navigate('/home', { replace: true });
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.errors;
       if (typeof msg === 'object') {

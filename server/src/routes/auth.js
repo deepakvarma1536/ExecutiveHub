@@ -41,14 +41,6 @@ const resetPasswordSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
-const verifyOtpSchema = z.object({
-  email: z.string().email('Invalid email address').toLowerCase(),
-  otp: z.string().length(6, 'OTP must be 6 digits'),
-});
-
-const resendOtpSchema = z.object({
-  email: z.string().email('Invalid email address').toLowerCase(),
-});
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -119,31 +111,7 @@ async function claimGuestAttemptsSafely(user, guestId) {
   }
 }
 
-async function sendOtpEmail(user, otp) {
-  console.log(`\n\n[VERIFICATION OTP for ${user.email}]: ${otp}\n\n`);
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-    port: process.env.SMTP_PORT || 587,
-    secure: Number(process.env.SMTP_PORT) === 465,
-    auth: {
-      user: process.env.SMTP_USER || 'ethereal_user',
-      pass: process.env.SMTP_PASS || 'ethereal_pass'
-    }
-  });
 
-  try {
-    if (process.env.SMTP_HOST) {
-      await transporter.sendMail({
-        from: process.env.SMTP_USER ? `"ExecutiveHub" <${process.env.SMTP_USER}>` : '"ExecutiveHub" <noreply@executivehub.com>',
-        to: user.email,
-        subject: 'Verify your email address',
-        text: `Your verification code is: ${otp}\n\nThis code will expire in 10 minutes.`
-      });
-    }
-  } catch (err) {
-    console.error('Email could not be sent', err);
-  }
-}
 
 // ── Routes ─────────────────────────────────────────────────────────────────────
 
@@ -158,21 +126,25 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const user = await User.create({ 
       name, 
       email, 
       passwordHash, 
       ...(role && { role }),
-      isVerified: false,
-      verificationOtp: await bcrypt.hash(otp, 12),
-      verificationOtpExpires: Date.now() + 10 * 60 * 1000 // 10 minutes
+      isVerified: true
     });
     
     await claimGuestAttemptsSafely(user, guestId);
-    await sendOtpEmail(user, otp);
 
-    res.status(201).json({ message: 'Registration successful. Please verify your email.', email: user.email, requiresVerification: true });
+    const token = signToken(user._id);
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
+    res.status(201).json({ message: 'Registration successful.', token, user: publicUser(user) });
   } catch (err) {
     res.status(500).json({ message: 'Registration failed', error: err.message });
   }
@@ -188,10 +160,6 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     if (!valid) {
       // same message for both cases — avoid email enumeration
       return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    if (!user.isVerified) {
-      return res.status(403).json({ message: 'Please verify your email address to continue.', requiresVerification: true, email: user.email });
     }
 
     const token = signToken(user._id);
@@ -240,8 +208,6 @@ router.post('/google', validate(googleSchema), async (req, res) => {
       });
     } else if (!user.isVerified) {
       user.isVerified = true;
-      user.verificationOtp = undefined;
-      user.verificationOtpExpires = undefined;
       await user.save();
     }
 
@@ -353,60 +319,3 @@ router.post('/reset-password/:token', validate(resetPasswordSchema), async (req,
 
 export default router;
 
-// POST /api/auth/verify-email
-router.post('/verify-email', validate(verifyOtpSchema), async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const user = await User.findOne({ email, isVerified: false });
-    
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid request or email already verified.' });
-    }
-    if (!user.verificationOtpExpires || user.verificationOtpExpires < Date.now()) {
-      return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
-    }
-    
-    const valid = await bcrypt.compare(otp, user.verificationOtp);
-    if (!valid) {
-      return res.status(400).json({ message: 'Invalid OTP.' });
-    }
-
-    user.isVerified = true;
-    user.verificationOtp = undefined;
-    user.verificationOtpExpires = undefined;
-    await user.save();
-
-    const token = signToken(user._id);
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
-    });
-    
-    res.json({ message: 'Email verified successfully.', token, user: publicUser(user) });
-  } catch (err) {
-    res.status(500).json({ message: 'Verification failed', error: err.message });
-  }
-});
-
-// POST /api/auth/resend-otp
-router.post('/resend-otp', validate(resendOtpSchema), async (req, res) => {
-  try {
-    const { email } = req.body;
-    const user = await User.findOne({ email, isVerified: false });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid request or email already verified.' });
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.verificationOtp = await bcrypt.hash(otp, 12);
-    user.verificationOtpExpires = Date.now() + 10 * 60 * 1000;
-    await user.save();
-    
-    await sendOtpEmail(user, otp);
-    res.json({ message: 'A new verification code has been sent to your email.' });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to resend OTP', error: err.message });
-  }
-});
