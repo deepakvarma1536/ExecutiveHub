@@ -99,10 +99,9 @@ export default function QuizDashboardPage() {
           averageScore:  res.data.averageScore,
           attemptCount:  res.data.attemptCount,
         });
-        // If the session has officially ended, OR if attempts have already been recorded
-        // (e.g. host refreshed the page mid-quiz), jump straight to the leaderboard view
-        // instead of showing an empty waiting lobby.
-        if (res.data.sessionEnded || res.data.attemptCount > 0) {
+        // If attempts have already been recorded (e.g. host refreshed the page mid-quiz),
+        // jump straight to the leaderboard view instead of showing an empty waiting lobby.
+        if (res.data.attemptCount > 0) {
           setCurrentQuestionIdx(res.data.questionStats.length);
         }
       })
