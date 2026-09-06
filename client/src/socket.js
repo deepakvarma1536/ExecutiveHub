@@ -6,7 +6,7 @@ import { io } from 'socket.io-client';
  * - In prod (Vercel): connects directly to the Render backend URL
  */
 export function createSocket() {
-  const serverUrl = import.meta.env.VITE_API_URL || '';
+  const serverUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
   return io(serverUrl, {
     path: '/socket.io',
     transports: ['websocket', 'polling'],

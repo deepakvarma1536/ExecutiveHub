@@ -26,20 +26,48 @@ app.set('trust proxy', 1);
 
 // Safely parse origin to prevent trailing slash mismatches and hidden characters
 const rawOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
-const clientOrigin = rawOrigin.replace(/[^a-zA-Z0-9\-_:\/\.]/g, '').replace(/\/$/, '');
+const configuredOrigins = rawOrigin
+  .split(',')
+  .map(o => o.trim().replace(/[^a-zA-Z0-9\-_:\/\.]/g, '').replace(/\/$/, ''))
+  .filter(Boolean);
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true; // Allow non-browser clients (curl, mobile, etc.)
+  if (configuredOrigins.includes(origin)) return true;
+  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true;
+  try {
+    const url = new URL(origin);
+    if (url.hostname === 'localhost' || url.hostname.endsWith('.vercel.app')) {
+      return true;
+    }
+  } catch {
+    // Ignore URL parse error
+  }
+  return false;
+};
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    }
+  },
+  credentials: true,
+};
 
 const io = new Server(httpServer, {
   cors: {
-    origin: clientOrigin,
+    origin: (origin, callback) => {
+      callback(null, isOriginAllowed(origin));
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },
 });
 
-app.use(cors({ 
-  origin: clientOrigin,
-  credentials: true 
-}));
+app.use(cors(corsOptions));
 app.use(cookieParser());
 
 // Set security HTTP headers (CSP disabled to not break Vite frontend static serving)
