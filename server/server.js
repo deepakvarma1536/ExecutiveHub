@@ -117,7 +117,13 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/performance', performanceRoutes);
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', aiProvider: activeProvider(), timestamp: new Date().toISOString() });
+  const dbState = ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoose.connection.readyState] || 'unknown';
+  res.json({ 
+    status: 'ok', 
+    database: dbState,
+    aiProvider: activeProvider(), 
+    timestamp: new Date().toISOString() 
+  });
 });
 
 app.use(errorHandler);
