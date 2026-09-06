@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "clean-db": "node clean-db.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

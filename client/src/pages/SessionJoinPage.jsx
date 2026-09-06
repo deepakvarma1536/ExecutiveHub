@@ -23,9 +23,13 @@ export default function SessionJoinPage() {
   const [redirecting, setRedirecting] = useState(false);
   const socketRef = useRef(null);
 
-  const goToQuiz = useCallback((playerName) => {
-    navigate(`/sessions/${sessionId}/post-quiz?name=${encodeURIComponent(playerName)}`);
-  }, [navigate, sessionId]);
+  const targetSessionId = sessionId || sessionInfo?._id;
+
+  const goToQuiz = useCallback((playerName, sId = targetSessionId) => {
+    if (sId) {
+      navigate(`/sessions/${sId}/post-quiz?name=${encodeURIComponent(playerName)}`);
+    }
+  }, [navigate, targetSessionId]);
 
   async function handleJoin(e) {
     e?.preventDefault();
@@ -54,14 +58,14 @@ export default function SessionJoinPage() {
         throw err;
       }
 
-      if (session._id !== sessionId) {
+      if (sessionId && session._id !== sessionId) {
         setErrors({ code: 'This code does not match the session link.' });
         return;
       }
 
       // Step 2: if host has already launched the quiz, go straight in
       if (session.type !== 'poll' && session.endedAt) {
-        goToQuiz(trimmedName);
+        goToQuiz(trimmedName, session._id);
         return;
       }
 
@@ -77,19 +81,19 @@ export default function SessionJoinPage() {
 
   // Waiting room: listen for quiz-ready
   useEffect(() => {
-    if (!joined) return;
+    if (!joined || !targetSessionId) return;
 
     const socket = createSocket();
     socketRef.current = socket;
 
-    socket.on('connect', () => socket.emit('join-session', sessionId));
+    socket.on('connect', () => socket.emit('join-session', targetSessionId));
     socket.on('quiz-ready', () => {
       setRedirecting(true);
-      setTimeout(() => goToQuiz(name.trim()), 1000);
+      setTimeout(() => goToQuiz(name.trim(), targetSessionId), 1000);
     });
 
     return () => socket.disconnect();
-  }, [joined, sessionId, name, goToQuiz]);
+  }, [joined, targetSessionId, name, goToQuiz]);
 
   /* ── Entry form ── */
   if (!joined) {
@@ -196,7 +200,7 @@ export default function SessionJoinPage() {
       {!redirecting && (
         <div className="poll-student-section">
           <div className="poll-student-title">Live Polls</div>
-          <LivePollTab sessionId={sessionId} isHost={false} />
+          <LivePollTab sessionId={targetSessionId} isHost={false} />
         </div>
       )}
     </div>

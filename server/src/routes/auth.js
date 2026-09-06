@@ -273,7 +273,7 @@ router.post('/forgot-password', validate(forgotPasswordSchema), async (req, res)
     user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
     await user.save();
 
-    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.CLIENT_URL || process.env.CLIENT_ORIGIN || 'http://localhost:5173'}/reset-password/${resetToken}`;
 
     // For production, configure SMTP. For development, we log it.
     console.log(`\n\n[PASSWORD RESET URL for ${email}]:\n${resetUrl}\n\n`);

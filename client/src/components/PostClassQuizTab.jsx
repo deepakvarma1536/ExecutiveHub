@@ -3,17 +3,22 @@ import api from '../api.js';
 import ManualQuestionForm from './ManualQuestionForm.jsx';
 import QuizQuestionCard from './QuizQuestionCard.jsx';
 
-export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes, isHost = false }) {
+export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes, isHost = false, onTopicUpdate }) {
   const [quiz, setQuiz] = useState(undefined);
   const [loadError, setLoadError] = useState(null);
   const [aiProvider, setAiProvider] = useState(null); // 'gemini' | 'groq' | 'ollama' | null
 
   const [showGenPanel, setShowGenPanel] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
+  const [customTopic, setCustomTopic] = useState(sessionTopic || '');
   const [questionCount, setQuestionCount] = useState(5);
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
+
+  useEffect(() => {
+    if (sessionTopic) setCustomTopic(sessionTopic);
+  }, [sessionTopic]);
 
   useEffect(() => {
     api.get(`/sessions/${sessionId}/quiz`)
@@ -29,9 +34,20 @@ export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes
   }, [sessionId]);
 
   const handleGenerate = async () => {
+    const topicToUse = customTopic.trim() || sessionTopic?.trim();
+    if (!topicToUse && !pdfFile) {
+      setGenError('Please enter a topic or upload a PDF to generate questions.');
+      return;
+    }
+
     setGenerating(true);
     setGenError(null);
     try {
+      if (topicToUse && topicToUse !== sessionTopic) {
+        await api.patch(`/sessions/${sessionId}`, { topic: topicToUse });
+        onTopicUpdate?.(topicToUse);
+      }
+
       let res;
       if (pdfFile) {
         const formData = new FormData();
@@ -152,17 +168,21 @@ export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes
               </span>
             )}
           </div>
-          {sessionTopic ? (
-            <div className="gen-panel-hint">
-              Topic: <strong>{sessionTopic}</strong>
-              {sessionNotes && (
-                <> · Notes: <strong>{sessionNotes.slice(0, 80)}{sessionNotes.length > 80 ? '…' : ''}</strong></>
-              )}
-            </div>
-          ) : (
-            <div className="banner banner-info" style={{ marginBottom: '0.875rem' }}>
-              <strong>No topic set</strong>
-              Add a topic to this session (Details tab) before generating.
+          <div className="gen-panel-row" style={{ marginBottom: '0.875rem' }}>
+            <span className="gen-count-label">Topic</span>
+            <input
+              type="text"
+              className="gen-count-input"
+              style={{ flex: 1, textAlign: 'left', padding: '0.5rem 0.75rem', width: 'auto' }}
+              placeholder="e.g. Python Functions, World History, JavaScript Basics..."
+              value={customTopic}
+              onChange={(e) => setCustomTopic(e.target.value)}
+              disabled={generating}
+            />
+          </div>
+          {sessionNotes && (
+            <div className="gen-panel-hint" style={{ marginBottom: '0.875rem' }}>
+              Notes: <strong>{sessionNotes.slice(0, 100)}{sessionNotes.length > 100 ? '…' : ''}</strong>
             </div>
           )}
           <div className="gen-panel-row" style={{ marginBottom: '0.875rem' }}>
@@ -184,12 +204,12 @@ export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes
               max={20}
               value={questionCount}
               onChange={(e) => setQuestionCount(e.target.value)}
-              disabled={generating || (!sessionTopic && !pdfFile)}
+              disabled={generating}
             />
             <button
               className="btn btn-primary"
               onClick={handleGenerate}
-              disabled={generating || (!sessionTopic && !pdfFile)}
+              disabled={generating || (!customTopic.trim() && !sessionTopic && !pdfFile)}
             >
               {generating && <span className="spinner" />}
               {generating ? 'Generating…' : 'Generate'}
@@ -252,14 +272,74 @@ export default function PostClassQuizTab({ sessionId, sessionTopic, sessionNotes
           ))}
         </>
       ) : (
-        <div className="empty-state">
-          <div className="empty-state-icon">📝</div>
-          <div className="empty-state-title">No questions yet</div>
-          <div className="empty-state-desc">
-            {isHost
-              ? 'Generate questions with AI, or add them manually above.'
-              : 'The host hasn\'t published a quiz for this session yet.'}
+        <div className="empty-state" style={{ padding: '2.5rem 1.5rem', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '1rem', marginTop: '1.25rem' }}>
+          <div className="empty-state-icon" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📝</div>
+          <div className="empty-state-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>Add Questions to your Quiz</div>
+          <div className="empty-state-desc" style={{ maxWidth: '500px', margin: '0 auto 1.75rem auto', color: '#64748b' }}>
+            Choose how you'd like to get started. Generate questions instantly with AI or write your own custom questions manually.
           </div>
+
+          {isHost && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', maxWidth: '600px', margin: '0 auto' }}>
+              <button
+                type="button"
+                onClick={() => { setShowGenPanel(true); setShowManualForm(false); }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  padding: '1.25rem',
+                  background: '#ffffff',
+                  border: '1.5px solid #0f766e',
+                  borderRadius: '0.75rem',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '1.25rem' }}>✨</span>
+                  <span style={{ fontWeight: 700, color: '#0f766e', fontSize: '1rem' }}>Generate with AI</span>
+                </div>
+                <p style={{ fontSize: '0.8125rem', color: '#64748b', margin: '0 0 1rem 0', lineHeight: 1.4 }}>
+                  Automatically generate multiple-choice questions from a topic, notes, or PDF.
+                </p>
+                <span className="btn btn-primary" style={{ padding: '0.45rem 0.9rem', fontSize: '0.8125rem', fontWeight: 600, marginTop: 'auto' }}>
+                  Open AI Generator →
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setShowManualForm(true); setShowGenPanel(false); }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  padding: '1.25rem',
+                  background: '#ffffff',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '0.75rem',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '1.25rem' }}>✍️</span>
+                  <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '1rem' }}>Add Manually</span>
+                </div>
+                <p style={{ fontSize: '0.8125rem', color: '#64748b', margin: '0 0 1rem 0', lineHeight: 1.4 }}>
+                  Write custom questions, set options A–D, choose the correct answer, and assign points.
+                </p>
+                <span className="btn btn-ghost" style={{ padding: '0.45rem 0.9rem', fontSize: '0.8125rem', fontWeight: 600, border: '1px solid #cbd5e1', marginTop: 'auto' }}>
+                  + Add Question →
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

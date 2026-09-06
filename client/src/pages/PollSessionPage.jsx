@@ -13,7 +13,7 @@ export default function PollSessionPage() {
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  const isHost = session?.hostId === user?.id;
+  const isHost = Boolean(user && session && (user._id || user.id) === (session.hostId?._id || session.hostId)?.toString());
 
   useEffect(() => {
     api.get(`/sessions/${id}`)

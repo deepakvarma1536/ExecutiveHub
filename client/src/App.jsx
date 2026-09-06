@@ -27,6 +27,7 @@ export default function App() {
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
           {/* Public routes — no login needed */}
+          <Route path="/join"                   element={<SessionJoinPage />} />
           <Route path="/sessions/:id/join"      element={<SessionJoinPage />} />
           <Route path="/sessions/:id/post-quiz" element={<PostQuizPage />} />
 

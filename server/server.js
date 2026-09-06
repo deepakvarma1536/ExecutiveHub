@@ -13,6 +13,7 @@ import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
 import cookie from 'cookie';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -98,7 +99,7 @@ if (process.env.NODE_ENV !== 'production' || process.env.SERVE_CLIENT === 'true'
   app.use(express.static(path.join(__dirname, '../client/dist')));
   app.get('*', (req, res) => {
     const indexPath = path.join(__dirname, '../client/dist/index.html');
-    if (require('fs').existsSync(indexPath)) {
+    if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
     } else {
       res.status(404).json({ message: 'Frontend not built. Deploy frontend separately or build client.' });
@@ -119,11 +120,15 @@ io.use((socket, next) => {
     const parsedCookies = cookie.parse(rawCookie);
     const token = parsedCookies.auth_token;
     if (token) {
-      socket.user = jwt.verify(token, process.env.JWT_SECRET);
+      try {
+        socket.user = jwt.verify(token, process.env.JWT_SECRET);
+      } catch {
+        socket.user = null; // treat expired or invalid tokens as guest rather than dropping socket
+      }
     }
     next();
   } catch (err) {
-    next(new Error('Authentication error'));
+    next();
   }
 });
 
@@ -142,6 +147,13 @@ io.on('connection', (socket) => {
 
   socket.on('quiz-present-leaderboard', ({ sessionId, leaderboard }) => {
     socket.to(sessionId).emit('quiz-show-leaderboard', { leaderboard });
+  });
+
+  // Player answers a question — forward to session room so presenter dashboard updates in real time
+  socket.on('quiz-answer', ({ sessionId, ...data }) => {
+    if (sessionId) {
+      socket.to(sessionId).emit('quiz-answer', data);
+    }
   });
 
   // Player signals they finished seeing a result and are ready for the next question

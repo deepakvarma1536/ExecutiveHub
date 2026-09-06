@@ -9,15 +9,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL   = 'gemini-2.0-flash';
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 const GROQ_URL     = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL   = 'llama-3.1-8b-instant';
+const DEFAULT_GROQ_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
 
 const OLLAMA_URL   = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = 'llama3';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3';
 
 /* ── Zod schema ─────────────────────────────────────────────── */
 const QuestionSchema = z.object({
@@ -90,7 +87,10 @@ function validate(rawText, source) {
 
 /* ── Gemini provider ────────────────────────────────────────── */
 async function generateWithGemini(prompt) {
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) throw new Error('GEMINI_API_KEY is not configured');
+
+  const genAI = new GoogleGenerativeAI(geminiKey);
   const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
   let result;
@@ -114,31 +114,53 @@ async function generateWithGemini(prompt) {
 }
 
 /* ── Groq provider ──────────────────────────────────────────── */
-async function generateWithGroq(prompt) {
-  const res = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
-    }),
-    signal: AbortSignal.timeout(60_000),
-  });
+async function generateWithGroq(prompt, questionCount = 5) {
+  const groqKey = process.env.GROQ_API_KEY;
+  if (!groqKey) throw new Error('GROQ_API_KEY is not configured');
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    if (res.status === 429) {
-      throw new Error(`Groq rate limit exceeded — try again shortly. (${body})`);
+  const modelsToTry = [
+    ...(process.env.GROQ_MODEL ? [process.env.GROQ_MODEL] : []),
+    ...DEFAULT_GROQ_MODELS,
+  ];
+
+  const maxTokens = Math.min(1000, Math.max(500, questionCount * 180));
+  let lastError = null;
+
+  for (const model of modelsToTry) {
+    try {
+      const res = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${groqKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: maxTokens,
+          temperature: 0.7,
+        }),
+        signal: AbortSignal.timeout(60_000),
+      });
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        if (res.status === 429) {
+          throw new Error(`Groq rate limit exceeded — try again shortly. (${body})`);
+        }
+        throw new Error(`Groq responded with ${res.status} for model ${model}: ${body}`);
+      }
+
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content ?? '';
+      if (content) return content;
+    } catch (err) {
+      lastError = err;
+      console.warn(`Groq generation attempt with model "${model}" failed:`, err.message);
     }
-    throw new Error(`Groq responded with ${res.status}: ${body}`);
   }
 
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? '';
+  throw lastError || new Error('Groq generation failed with all attempted models');
 }
 
 /* ── Ollama provider ────────────────────────────────────────── */
@@ -188,7 +210,7 @@ export async function generateQuiz(topic, notes, questionCount) {
 
   const prompt = buildPrompt(topic, notes, questionCount);
 
-  if (GEMINI_API_KEY) {
+  if (process.env.GEMINI_API_KEY) {
     let raw;
     try {
       raw = await generateWithGemini(prompt);
@@ -198,10 +220,10 @@ export async function generateQuiz(topic, notes, questionCount) {
     return validate(raw, 'Gemini');
   }
 
-  if (GROQ_API_KEY) {
+  if (process.env.GROQ_API_KEY) {
     let raw;
     try {
-      raw = await generateWithGroq(prompt);
+      raw = await generateWithGroq(prompt, questionCount);
     } catch (err) {
       throw new Error(`Groq generation failed: ${err.message}`);
     }
@@ -218,7 +240,7 @@ export async function generateQuiz(topic, notes, questionCount) {
  * Used by the health endpoint so hosts can see the status at a glance.
  */
 export function activeProvider() {
-  if (GEMINI_API_KEY) return 'gemini';
-  if (GROQ_API_KEY)   return 'groq';
+  if (process.env.GEMINI_API_KEY) return 'gemini';
+  if (process.env.GROQ_API_KEY)   return 'groq';
   return 'ollama';
 }

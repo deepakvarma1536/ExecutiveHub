@@ -7,8 +7,8 @@ import '../quiz.css';
 import '../launch.css';
 
 const TABS = [
-  { id: 'details', label: 'Details' },
-  { id: 'quiz', label: 'Post-Class Quiz' },
+  { id: 'quiz', label: 'Quiz Questions' },
+  { id: 'details', label: 'Session Details' },
 ];
 
 export default function SessionEditPage() {
@@ -17,7 +17,7 @@ export default function SessionEditPage() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('details');
+  const [activeTab, setActiveTab] = useState('quiz');
   const [launching, setLaunching] = useState(false);
   const [launched, setLaunched] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -104,8 +104,9 @@ export default function SessionEditPage() {
     );
   }
 
-  const isHost = user && session &&
-    (user._id ?? user.id) === session.hostId?.toString();
+  const currentUserId = (user?._id || user?.id)?.toString();
+  const sessionHostId = (session?.hostId?._id || session?.hostId)?.toString();
+  const isHost = Boolean(currentUserId && sessionHostId && currentUserId === sessionHostId);
   const alreadyEnded = !!session.endedAt;
 
   return (
@@ -124,7 +125,7 @@ export default function SessionEditPage() {
 
       <div className="page">
         <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569', marginBottom: '1.25rem' }}>
-          Dashboard &gt; Session Details
+          Dashboard &gt; Quiz Session
         </div>
 
       {/* Launch Quiz banner — host only */}
@@ -184,7 +185,7 @@ export default function SessionEditPage() {
 
       {/* Tab content */}
       {activeTab === 'details' && (
-        <DetailsTab session={session} />
+        <DetailsTab session={session} onSwitchToQuiz={() => setActiveTab('quiz')} />
       )}
 
       {activeTab === 'quiz' && (
@@ -193,6 +194,7 @@ export default function SessionEditPage() {
           sessionTopic={session.topic}
           sessionNotes={session.notes}
           isHost={isHost}
+          onTopicUpdate={(t) => setSession(prev => ({ ...prev, topic: t }))}
         />
       )}
 
@@ -210,7 +212,7 @@ export default function SessionEditPage() {
   );
 }
 
-function DetailsTab({ session }) {
+function DetailsTab({ session, onSwitchToQuiz }) {
   const [copied, setCopied] = useState(false);
   async function handleCopyLink() {
     const url = `${window.location.origin}/sessions/${session._id}/join`;
@@ -226,6 +228,22 @@ function DetailsTab({ session }) {
 
   return (
     <div className="details-grid">
+      <div className="details-card full" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(15,118,110,0.08) 0%, rgba(15,118,110,0.02) 100%)', border: '1.5px solid #0f766e' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <div className="details-card-label" style={{ color: '#0f766e', letterSpacing: '0.15em' }}>QUIZ QUESTIONS</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>Manage Questions for this Quiz</div>
+            <div style={{ fontSize: '0.875rem', color: '#475569', marginTop: '0.25rem' }}>Add questions manually or generate them automatically using AI.</div>
+          </div>
+          <button
+            onClick={onSwitchToQuiz}
+            className="btn btn-primary"
+            style={{ padding: '0.625rem 1.25rem', fontSize: '0.9375rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            Manage Questions →
+          </button>
+        </div>
+      </div>
       <div className="details-card full" style={{ padding: '1.5rem' }}>
         <div className="details-card-label" style={{ letterSpacing: '0.15em' }}>TITLE</div>
         <div className="details-card-value" style={{ fontSize: '2rem', fontWeight: 800 }}>{session.title}</div>

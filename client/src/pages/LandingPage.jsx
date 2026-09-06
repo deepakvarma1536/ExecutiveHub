@@ -83,7 +83,10 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   function handleCard(feature) {
-    if (feature.isJoin) return;
+    if (feature.isJoin) {
+      navigate('/join');
+      return;
+    }
     navigate(user ? feature.path : feature.publicPath);
   }
 

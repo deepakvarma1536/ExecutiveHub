@@ -1,45 +1,53 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import User from './src/models/User.js';
+import Session from './src/models/Session.js';
+import Question from './src/models/Question.js';
+import PostClassQuiz from './src/models/PostClassQuiz.js';
+import Poll from './src/models/Poll.js';
 import QuizAttempt from './src/models/QuizAttempt.js';
 import StudentPerformance from './src/models/StudentPerformance.js';
+import Attendance from './src/models/Attendance.js';
 
 dotenv.config();
 
 async function clean() {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 
-    const keepUser = await User.findOne({ email: 'gowrishvarma@gmail.com' });
-    const keepUserId = keepUser ? keepUser._id : null;
+    const [
+      userRes,
+      sessionRes,
+      questionRes,
+      quizRes,
+      pollRes,
+      attemptRes,
+      perfRes,
+      attendanceRes
+    ] = await Promise.all([
+      User.deleteMany({}),
+      Session.deleteMany({}),
+      Question.deleteMany({}),
+      PostClassQuiz.deleteMany({}),
+      Poll.deleteMany({}),
+      QuizAttempt.deleteMany({}),
+      StudentPerformance.deleteMany({}),
+      Attendance.deleteMany({})
+    ]);
 
-    if (!keepUserId) {
-      console.log('Warning: gowrishvarma@gmail.com was not found in the database. Deleting ALL accounts.');
-    } else {
-      console.log(`Keeping account: ${keepUser.email}`);
-    }
+    console.log(`Deleted ${userRes.deletedCount} user account(s).`);
+    console.log(`Deleted ${sessionRes.deletedCount} session(s).`);
+    console.log(`Deleted ${questionRes.deletedCount} question(s).`);
+    console.log(`Deleted ${quizRes.deletedCount} quiz(zes).`);
+    console.log(`Deleted ${pollRes.deletedCount} poll(s).`);
+    console.log(`Deleted ${attemptRes.deletedCount} attempt(s).`);
+    console.log(`Deleted ${perfRes.deletedCount} performance record(s).`);
+    console.log(`Deleted ${attendanceRes.deletedCount} attendance record(s).`);
 
-    // 1. Delete all other users
-    const userResult = await User.deleteMany({ email: { $ne: 'gowrishvarma@gmail.com' } });
-    console.log(`Deleted ${userResult.deletedCount} User accounts.`);
-
-    // 2. Delete all related data for other users
-    if (keepUserId) {
-      const qaRes = await QuizAttempt.deleteMany({ userId: { $ne: keepUserId } });
-      console.log(`Deleted ${qaRes.deletedCount} Quiz Attempts.`);
-
-      const spRes = await StudentPerformance.deleteMany({ userId: { $ne: keepUserId } });
-      console.log(`Deleted ${spRes.deletedCount} Student Performances.`);
-    } else {
-      const qaRes = await QuizAttempt.deleteMany({});
-      console.log(`Deleted ${qaRes.deletedCount} Quiz Attempts.`);
-
-      const spRes = await StudentPerformance.deleteMany({});
-      console.log(`Deleted ${spRes.deletedCount} Student Performances.`);
-    }
-
-    console.log('\nDatabase cleanup complete!');
+    console.log('\nAll user accounts and data have been completely removed!');
+    await mongoose.disconnect();
     process.exit(0);
   } catch (err) {
     console.error('Error during cleanup:', err);

@@ -200,6 +200,7 @@ export default function PostQuizPage() {
     }]);
 
     socketRef.current?.emit('quiz-answer', {
+      sessionId,
       playerName,
       questionId: q._id,
       selectedIndex: selected ?? -1,
