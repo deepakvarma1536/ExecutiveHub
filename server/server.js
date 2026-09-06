@@ -116,11 +116,17 @@ app.use('/api/sessions', pollRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/performance', performanceRoutes);
 
+let lastDbError = null;
+
 app.get('/api/health', (_req, res) => {
   const dbState = ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoose.connection.readyState] || 'unknown';
   res.json({ 
     status: 'ok', 
-    database: dbState,
+    database: {
+      state: dbState,
+      hasUri: Boolean(process.env.MONGO_URI || process.env.MONGODB_URI),
+      lastError: lastDbError
+    },
     aiProvider: activeProvider(), 
     timestamp: new Date().toISOString() 
   });
@@ -218,12 +224,16 @@ async function connectWithRetry(attempt = 1) {
   if (isReconnecting && attempt === 1) return; // another loop already running
   isReconnecting = true;
   try {
-    await mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI, MONGO_OPTS);
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    if (!uri) throw new Error('MONGO_URI is missing in environment variables');
+    await mongoose.connect(uri, MONGO_OPTS);
     console.log('MongoDB connected');
+    lastDbError = null;
     isReconnecting = false;
   } catch (err) {
+    lastDbError = err.message;
     const delay = Math.min(5000 * attempt, 30_000);
-    console.warn(`MongoDB connection failed (attempt ${attempt}) — retrying in ${delay / 1000}s`);
+    console.warn(`MongoDB connection failed (attempt ${attempt}): ${err.message} — retrying in ${delay / 1000}s`);
     setTimeout(() => connectWithRetry(attempt + 1), delay);
   }
 }
